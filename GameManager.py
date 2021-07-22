@@ -53,7 +53,7 @@ print(f"The input length is {input_size}.")
 # Genetic Algorithm to find a good HanabiAI
 # Initialize with 2*N players (Initial Population)
 
-population = 2*50
+population = 50
 # The weights in this current implementation are 5,440
 num_weights = 5440
 
@@ -80,17 +80,17 @@ num_gen_to_train = 10000
 
 for i in range(num_gen_to_train):
     # Sort randomly and take pairs in order as game partners
-    random.shuffle(current_generation_players)
+    # random.shuffle(current_generation_players)
         
-    for j in range(int(population/2)):
+    for j in range(population):
         cur_game = HanabiGame()
 #         player_turn = 0
         while cur_game.game_end == False:
             # Predict a move
             np_bs = np.array(flatten(cur_game.boardState(
                                             cur_game.current_player_turn)))
-            move_ratings = current_generation_players[2*j+
-                    cur_game.current_player_turn][0].choose_best_move(np_bs)
+            move_ratings = (current_generation_players
+                                    [j][0].choose_best_move(np_bs))
             move_index = 0
             
             
@@ -107,11 +107,10 @@ for i in range(num_gen_to_train):
             # print(move_index)
             cur_game.performMove(move_index)
         # Score the players this time
-        current_generation_players[2*j][1]=cur_game.current_score
-        current_generation_players[2*j+1][1]=cur_game.current_score
+        current_generation_players[j][1]=cur_game.current_score
 
 #     We have  changed the fitness to throw out those who score zero... gl us!
-    fitness_from_score = [(x[1])**2 for x in current_generation_players]
+    fitness_from_score = [(x[1])**4 for x in current_generation_players]
     normalized_fitness = np.array(fitness_from_score) / np.sum(
                                                         fitness_from_score)
     

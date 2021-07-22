@@ -102,21 +102,21 @@ class HanabiPlayer:
 #         print(f"guess vec = {guess_vec}")
         return guess_vec[0]
                 
-    def update_game(self, game_state):
-        self.game_state = game_state
-        return
+    # def update_game(self, game_state):
+    #     self.game_state = game_state
+    #     return
     
-    def mutate(self, dna_weights):
-        mutation_rate = 0.001
-        new_weights = []
+    # def mutate(self, dna_weights):
+    #     mutation_rate = 0.001
+    #     new_weights = []
         
-        for weight in dna_weights:
-            if random.random() < mutation_rate:
-                new_weights.append(random.random())
-            else:
-                new_weights.append(weight)
+    #     for weight in dna_weights:
+    #         if random.random() < mutation_rate:
+    #             new_weights.append(random.random())
+    #         else:
+    #             new_weights.append(weight)
         
-        return new_weights
+    #     return new_weights
 
 # test_game = HanabiGame()
 # input_size = len(flatten(test_game.boardState(0)))+len(test_game.legal_move_list[0])
