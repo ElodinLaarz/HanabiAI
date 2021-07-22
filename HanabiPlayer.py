@@ -44,7 +44,7 @@ class HanabiPlayer:
             Dense(units=self.layer_sizes[1], use_bias=False, 
                   activation='relu'),
             Dense(units=self.layer_sizes[2], use_bias=False, 
-                  activation='sigmoid')
+                  activation='relu')
         ])
         
 #         if any(weights == None):
