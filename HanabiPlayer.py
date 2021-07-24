@@ -40,11 +40,11 @@ class HanabiPlayer:
         self.model = Sequential([
             # Input will be a vector of game_state_size length
             Dense(units=self.layer_sizes[0], input_shape=(game_state_size,), 
-                  use_bias=False, activation='relu'),
+                  use_bias=False, activation='tanh'),
             Dense(units=self.layer_sizes[1], use_bias=False, 
                   activation='relu'),
             Dense(units=self.layer_sizes[2], use_bias=False, 
-                  activation='relu')
+                  activation='softmax')
         ])
         
 #         if any(weights == None):

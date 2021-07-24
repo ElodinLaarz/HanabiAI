@@ -5,6 +5,10 @@ import numpy as np
 import random
 # import statistics
 
+import csv
+import glob
+import os
+
 
 # Genetic Algorithm Stuff
 
@@ -17,12 +21,12 @@ def create_offspring_weights(parents):
         
     return mutate(average_weights)
 
-def mutate(weights, mutation_rate=0.01):
+def mutate(weights, mutation_rate=0.002):
     new_weights = []
 
     for weight in weights:
         if random.random() < mutation_rate:
-            new_weights.append(random.random())
+            new_weights.append(random.uniform(-1,1))
         else:
             new_weights.append(weight)
 
@@ -60,9 +64,21 @@ num_weights = 5440
 # current_generation_players = prev_gen
 current_generation_players = []
 
-for i in range(population):
+# Import a couple high scores from previous attempts to seed
+seed_weights = 0
+
+weights_path = './weights/'
+for filename in glob.glob(os.path.join(weights_path, '*.txt')):
+    with open(os.path.join(os.getcwd(), filename), 'r') as f:
+        print(f"Importing player who scored {f.readline()}");
+        current_generation_players.append([HanabiPlayer(game_state_size = 
+                                                        input_size, 
+                    weights =np.array(f.readline().strip().split(', '))), 0])
+        seed_weights += 1
+
+for i in range(seed_weights, population):
     # [Player, score_achieved]
-    random_weights = np.random.rand(num_weights)
+    random_weights = 2*np.random.rand(num_weights)-1
     current_generation_players.append([HanabiPlayer(game_state_size=input_size,
                                                 weights=random_weights), 0])
 
@@ -114,7 +130,7 @@ for i in range(num_gen_to_train):
     normalized_fitness = np.array(fitness_from_score) / np.sum(
                                                         fitness_from_score)
     
-    print(f"Fitness = {normalized_fitness}")
+    print(f"\nFitness = {normalized_fitness}\n")
 
     
     # Save weights after training? Or maybe save N of them?
@@ -128,10 +144,16 @@ for i in range(num_gen_to_train):
           "players who scored 0 points.\n")
     print(f"First place in generation {i} scored : {sorted_gen[0][1]}")
     print(f"Last place in generation {i} scored : {sorted_gen[-1][1]}")
-    f = open("./weights/genetic_weights.txt", "a")
-    f.write(f"Best of gen {i} scored {sorted_gen[0][1]} : \n" + 
-            str(sorted_gen[0][0].get_weights()) + "\n")
-    f.close()
+    
+    # If a player gets a particular score, we save their scores to disk
+    min_score_to_save = 9
+    
+    if sorted_gen[0][1] >= min_score_to_save:
+        f = open(f"./weights/score{sorted_gen[0][1]}-gen{i}.txt", "w")
+        f.write(f"{sorted_gen[0][1]} \n" + 
+                str(", ".join(list(map(str,sorted_gen[0][0].get_weights(
+                                                                ))))) + "\n")
+        f.close()
 
     
     # Generate a new generation by randomly choosing two* parents biased upon 

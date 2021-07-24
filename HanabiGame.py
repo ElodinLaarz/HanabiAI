@@ -154,13 +154,155 @@ class HanabiGame:
                 else:
                     if 1 in hint[1]:
                         print(f"You know that {card_index} is of " + 
-                              f"suit {(hint[0]).index(1)}")
+                              f"suit {(hint[1]).index(1)}")
                     else:
                         for value_index, existence in enumerate(hint[1]):
                             if existence == -1:
                                 print(f"You know card {card_index} is not " +
                                       f"of value {value_index}.")
 
+    
+    # [hints, lives, len(deck), Probabilties cards are playable, values relating to
+    # whether we need to tell an opponent about a suit/value of each of their
+    # cards]
+                     
+    def probabilities(self, player = None):
+        if player == None:
+            player = self.current_player_turn
+        
+        probs = []
+        
+        probs.append(self.hints)
+        probs.append(self.lives)
+        probs.append(len(self.deck))
+        
+        for card_index in range(self.hand_size):
+            probs.append(self.playable_prob(player=player, 
+                                            card_index=card_index))
+        
+        playable_cards = [(suit, self.board[suit]+1) 
+                          for suit in range(self.num_suits) 
+                          if self.board[suit] + 1 < self.num_values]
+        
+        for player_index in range(self.num_players):
+            if player_index != player:
+                for card_index in range(len(self.player_hands[player_index])):
+                    
+                    # If their card is unplayable, then default the prob
+                    # of giving suit info 0.
+                    
+                    suit_info = 0
+                    value_info = 0
+                    
+                    # I have added this feature to try to get a higher score
+                    # Knowing the value of an opponent's card 
+                    # might help make hint decisions.                    
+                    inverse_value = (self.player_hands[player_index][
+                                                            card_index][1]/5)
+                    # I don't think inverse suit will help since the input
+                    # doesn't say what cards are actually in play
+                    
+                    if (self.player_hands[player_index][card_index]
+                                                        in playable_cards):
+                        
+                        # If the card is playable, then we input
+                        # 1 - probability the card is playable from the
+                        # opponent's perspective. So, if the opponent knows
+                        # that they can play the card, then we don't have a
+                        # reason to tell them about that suit/value from this
+                        # card.
+                        
+                        if (self.player_hints[player_index][card_index][0][
+                            self.player_hands[player_index][card_index][0]]
+                                != 1):
+                            suit_info = 1-self.playable_prob(player=
+                                        player_index,card_index=card_index)
+                        
+                        if (self.player_hints[player_index][card_index][1][
+                            self.player_hands[player_index][card_index][1]] 
+                                != 1):
+                            value_info = 1-self.playable_prob(player=
+                                        player_index,card_index=card_index)
+                        
+                        
+                    probs.append(suit_info)
+                    probs.append(value_info)
+                    probs.append(inverse_value)
+        
+        # Gotta always send back a list of length 17... 
+        if self.game_is_ending:
+            probs.append(0)
+            probs.append(0)
+            # At the end of the game, you want to be playing high-cost cards
+            # so, I figure making the inverse value = 1/1 is the lowest
+            # possible, reasonable value
+            probs.append(1)
+        return probs
+               
+    # Returns the probability that a certain card is playable from the
+    # player's perspective.
+                 
+    def playable_prob(self, player, card_index):
+        # Cards that could be put into play
+        playable_cards = [(suit, self.board[suit]+1) 
+                          for suit in range(self.num_suits) 
+                          if self.board[suit] + 1 < self.num_values]
+        
+        # Check to see if you know what a card is and whether that card
+        # is playable.
+        
+        for card in playable_cards:
+            if (self.player_hints[player][card_index][0][card[0]] == 1 and
+                self.player_hints[player][card_index][1][card[1]] == 1):
+                return 1
+                
+        
+        
+        num_playable_cards = 0
+                
+        
+        # Go through each of the cards that *could* be put into play,
+        # find how many have been played so far, giving you the number that
+        # are remaining in the deck and your hand.
+        for card in playable_cards:
+            
+            # Check if card *could* be at the given index by checking hint
+            # information already known about the card.
+            # In particular, we check if we know that a card does *not*
+            # have the suit/value of the card we care about.
+            
+            if (self.player_hints[player][card_index][0][card[0]] == -1 or
+                self.player_hints[player][card_index][1][card[1]] == -1):
+                continue
+            
+            card_suit = card[0]
+            card_value = card[1]
+            available_cards = 0
+            
+            # Number of cards in the deck depends on value
+            
+            if card[1] == 0:
+                available_cards = 3
+            elif card[1] == 4:
+                available_cards = 1
+            else:
+                available_cards = 2
+            
+            # Check the discards
+            
+            available_cards -= self.discards[card_suit][card_value]
+            
+            # Check opponents hands
+            
+            for i in range(self.num_players):
+                if i != player:
+                    for opponent_card in self.player_hands[i]:
+                        if opponent_card == card:
+                            available_cards -= 1
+            
+            num_playable_cards += available_cards
+        
+        return  (num_playable_cards/(self.hand_size+len(self.deck)))
                             
     # Returns a tuple (The index of the current player's turn, 
     # [List of allowable moves])    
@@ -306,12 +448,35 @@ class HanabiGame:
                                      for x in range(self.num_suits) ]
                 else:
                     card_hints[0][suit_hint] = -1
+                    
+                    # Check to see if the negative information gained is
+                    # enough to learn the card's suit!
+                    
+                    negative_info_count = 0
+                    for suit_info in card_hints[0]:
+                        if suit_info == -1:
+                            negative_info_count += 1
+                    if negative_info_count == self.num_suits-1:
+                        card_hints[0] = [-1 if _suit == -1 else 1
+                                         for _suit in card_hints[0]]
+                    
             elif (value_hint != -1):
                 if value_hint == card_value:
                     card_hints[1] = [1 if x == card_value else -1 
                                      for x in range(self.num_values) ]
                 else:
-                    card_hints[1][suit_hint] = -1
+                    card_hints[1][value_hint] = -1
+                    
+                    # Check to see if the negative information gained is
+                    # enough to learn the card's value!
+                    
+                    negative_info_count = 0
+                    for value_info in card_hints[1]:
+                        if value_info == -1:
+                            negative_info_count += 1
+                    if negative_info_count == self.num_suits-1:
+                        card_hints[1] = [-1 if _value == -1 else 1
+                                         for _value in card_hints[0]]
             else:
                 print("We were given neither a suit nor a value.")
                 return
