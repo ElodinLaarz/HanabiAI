@@ -154,7 +154,7 @@ class HanabiGame:
                 else:
                     if 1 in hint[1]:
                         print(f"You know that {card_index} is of " + 
-                              f"suit {(hint[1]).index(1)}")
+                              f"value {(hint[1]).index(1)}")
                     else:
                         for value_index, existence in enumerate(hint[1]):
                             if existence == -1:
@@ -174,7 +174,7 @@ class HanabiGame:
         
         probs.append(self.hints)
         probs.append(self.lives)
-        probs.append(len(self.deck))
+        # probs.append(len(self.deck))
         
         for card_index in range(self.hand_size):
             probs.append(self.playable_prob(player=player, 
@@ -197,8 +197,8 @@ class HanabiGame:
                     # I have added this feature to try to get a higher score
                     # Knowing the value of an opponent's card 
                     # might help make hint decisions.                    
-                    inverse_value = (self.player_hands[player_index][
-                                                            card_index][1]/5)
+                    # inverse_value = (self.player_hands[player_index][
+                    #                                         card_index][1]/5)
                     # I don't think inverse suit will help since the input
                     # doesn't say what cards are actually in play
                     
@@ -216,33 +216,38 @@ class HanabiGame:
                             self.player_hands[player_index][card_index][0]]
                                 != 1):
                             suit_info = 1-self.playable_prob(player=
-                                        player_index,card_index=card_index)
+                                        player_index,card_index=card_index,
+                                        blind = True)
                         
                         if (self.player_hints[player_index][card_index][1][
                             self.player_hands[player_index][card_index][1]] 
                                 != 1):
                             value_info = 1-self.playable_prob(player=
-                                        player_index,card_index=card_index)
+                                        player_index,card_index=card_index,
+                                        blind = True)
                         
                         
                     probs.append(suit_info)
                     probs.append(value_info)
-                    probs.append(inverse_value)
+                    # probs.append(inverse_value)
         
-        # Gotta always send back a list of length 17... 
-        if self.game_is_ending:
-            probs.append(0)
-            probs.append(0)
-            # At the end of the game, you want to be playing high-cost cards
-            # so, I figure making the inverse value = 1/1 is the lowest
-            # possible, reasonable value
-            probs.append(1)
+                # Gotta always send back a full hand... 
+                if len(self.player_hands[player_index]) < self.hand_size:
+                    probs.append(0)
+                    probs.append(0)
+                    # At the end of the game, you want to be playing high-cost cards
+                    # so, I figure making the inverse value = 1/1 is the lowest
+                    # possible, reasonable value
+                    # probs.append(1)
         return probs
                
     # Returns the probability that a certain card is playable from the
     # player's perspective.
+    
+    # It turns out this doesn't take into account what other cards in your
+    # hand are, but... hopfully it's good enough for now.
                  
-    def playable_prob(self, player, card_index):
+    def playable_prob(self, player, card_index, blind = False):
         # Cards that could be put into play
         playable_cards = [(suit, self.board[suit]+1) 
                           for suit in range(self.num_suits) 
@@ -256,6 +261,36 @@ class HanabiGame:
                 self.player_hints[player][card_index][1][card[1]] == 1):
                 return 1
                 
+        # Booleans to check if we know our suit or value
+        suit_known = 1 in self.player_hints[player][card_index][0]
+        value_known = 1 in self.player_hints[player][card_index][1]
+        
+        # If we know the suit and the value, but it is not a playable card
+        # then it is, for sure, unplayable        
+        if suit_known and value_known:
+            return 0
+        
+        # denominator is the number of cards that this card could be.
+        
+        denominator = self.hand_size+len(self.deck)
+        
+        if (suit_known):
+            # number of cards of a fixed suit
+            denominator = 3 + (self.num_values-2)*2 + 1
+            denominator -= sum([self.discards[self.player_hints[player]
+                                         [card_index][0].index(1)][x] 
+                                            for x in range(self.num_values)])
+        elif (value_known):
+            value = self.player_hints[player][card_index][1].index(1)
+            denominator -= sum([self.discards[x][value] 
+                                            for x in range(self.num_values)])
+            if value == 0:
+                denominator = 3*(self.num_suits)
+            elif value == self.num_values-1:
+                denominator = (self.num_suits)                
+            else:
+                denominator = 2*(self.num_suits)
+        
         
         
         num_playable_cards = 0
@@ -293,16 +328,20 @@ class HanabiGame:
             available_cards -= self.discards[card_suit][card_value]
             
             # Check opponents hands
-            
-            for i in range(self.num_players):
-                if i != player:
-                    for opponent_card in self.player_hands[i]:
-                        if opponent_card == card:
-                            available_cards -= 1
+            if not blind:
+                for i in range(self.num_players):
+                    if i != player:
+                        for opponent_card in self.player_hands[i]:
+                            if opponent_card == card:
+                                available_cards -= 1
+                                if suit_known or value_known:
+                                    denominator -= 1
             
             num_playable_cards += available_cards
         
-        return  (num_playable_cards/(self.hand_size+len(self.deck)))
+        if denominator == 0:
+            print("This shouldn't be possible... right?")
+        return  (num_playable_cards/(denominator))
                             
     # Returns a tuple (The index of the current player's turn, 
     # [List of allowable moves])    

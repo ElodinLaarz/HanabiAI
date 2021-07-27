@@ -12,9 +12,9 @@ import statistics
 test_game = HanabiGame()
 
 # Lives, Hints, len(deck) 5 cards in hand, 3*opponents cards.
-input_size = 3+5+3*5
-# play cards (5), discard cards (5), give hints (10)
-output_size = 20
+input_size = 2+5+2*10
+# play cards (5), discard cards (5), give hints (10 x num_players)
+output_size = 30
 
 population = 1000
 
@@ -23,7 +23,7 @@ current_generation = []
 # Import a couple high scores from previous attempts to seed
 seed_weights = 0
 
-weights_path = './pm_weights/'
+weights_path = './three_player_weights/'
 for filename in glob.glob(os.path.join(weights_path, '*.txt')):
     with open(os.path.join(os.getcwd(), filename), 'r') as f:
         f.readline()
@@ -41,10 +41,10 @@ for i in range(seed_weights, population):
     current_generation.append([player(input_size=input_size,
                                       output_size=output_size), 0])
 
-num_generations = 10000
+num_generations = 1000
 
 # If a player gets a particular score, we save their scores to disk
-min_score_to_save = 14
+min_score_to_save = 11
 
 for generation_index in range(num_generations):
     
@@ -55,12 +55,12 @@ for generation_index in range(num_generations):
         games_to_play = 1
         player_scores = []
         for num_games in range(games_to_play):
-            cur_game = HanabiGame()
+            cur_game = HanabiGame(num_players=3)
             
             while cur_game.game_end == False:
                 
-                move_ratings = current_generation[player_index][0].move_preference(
-                    cur_game.probabilities())
+                move_ratings = (current_generation[player_index][0]
+                                .move_preference(cur_game.probabilities()))
                 
                 move_index = 0
                 
@@ -101,7 +101,7 @@ for generation_index in range(num_generations):
     
     weight_index_to_add = 0
     while sorted_gen[weight_index_to_add][1] >= min_score_to_save:
-        f = open("./pm_weights/"
+        f = open("./three_player_weights/"
                  +f"score{sorted_gen[weight_index_to_add][1]}-" + 
                  f"gen{generation_index}-{weight_index_to_add}.txt", "w")
         f.write(f"{sorted_gen[weight_index_to_add][1]} \n" + 
@@ -128,10 +128,12 @@ for generation_index in range(num_generations):
         parents = [current_generation[choice][0] for choice in parents]
         
         # print(parents[0].weights[0],parents[1].weights[0])
-        child_weights = parents[0].make_child([parents[1]])
+        child_weights = parents[0].make_child([parents[1]], 
+                                              mutation_rate = 0.002)
         
         new_generation.append(
-            [player(input_size=input_size,output_size=output_size,weights=child_weights),0])
+            [player(input_size=input_size,output_size=output_size,
+                    weights=child_weights),0])
     
     current_generation = new_generation
             
