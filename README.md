@@ -7,7 +7,7 @@ The cards have a number and a color (e.g. a Green 3 or a Red 1). You win once th
 
 On your turn, you have the option to either play a card from your hand, discard a card from your hand, or give someone a hint. A hint consists of saying a number or color
 and then marking **all** the cards in the player's hand that are of that color/number. A card is playable if it is the next number in sequence of a given color.
-(e.g. a Red 2 is playable exactly when the last red card played was a red 1, etc.)
+(e.g. a "red 2" is playable exactly when the last red card played was a "red 1", etc.)
 There are limited hints, limited cards in the deck, and if you try to play a card and it's unplayable a firework goes off! If enough fireworks go off, you get a score of 0!
 
 # How does it work?
