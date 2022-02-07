@@ -10,10 +10,9 @@ and then marking **all** the cards in the player's hand that are of that color/n
 There are limited hints, limited cards in the deck, and if you try to play a card and it's unplayable a firework goes off! If enough fireworks go off, you get a score of 0!
 
 # How does it work?
-The program useses a genetic algorithm to determine when to play/discard/give a hint. Many players are then randomly paired up with partners and their end score
-determines which genes get passed on to future generations!
+The program useses a genetic algorithm to determine when to play/discard/give a hint. In a given generation of AI players, they are then randomly paired up with partners and their end score determines which genes get passed on to future generations!
 
-# Is it any good?
+# Are the AI players it any good?
 I've gotten AI players that have scored an average of 18 points over 10 games. (In the standard game in which maximum score is 25.)
 
 # How do I run this?
@@ -23,4 +22,4 @@ Most of the project is broken in Jupyter notebooks with examples of how to run i
 You'll have to generate some yourself, then: get to it!
 
 # Can I just use this to play Hanabi?
-There is a fully-functional implementation of Hanabi that you can play, yes. Though, it's entirely text-based and not nearly as fun as the real card game, which I fully endorse.
+There is a fully-functional implementation of Hanabi that you can play, yes. You can even change the number of hints/fireworks/number of cards for added challenge. Although, it's entirely text-based and not nearly visually appealing as the real card game, which I fully endorse.
