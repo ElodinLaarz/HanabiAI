@@ -14,10 +14,13 @@ The program useses a genetic algorithm to determine when to play/discard/give a 
 determines which genes get passed on to future generations!
 
 # Is it any good?
-I've gotten players that have scored an average of 18 points over 10 games. (In the standard game in which maximum score is 25.)
+I've gotten AI players that have scored an average of 18 points over 10 games. (In the standard game in which maximum score is 25.)
 
 # How do I run this?
 Most of the project is broken in Jupyter notebooks with examples of how to run it; clone and check it out if you're interested!
 
 # There are no weights in the weights folder!
 You'll have to generate some yourself, then: get to it!
+
+# Can I just use this to play Hanabi?
+There is a fully-functional implementation of Hanabi that you can play, yes. Though, it's entirely text-based and not nearly as fun as the real card game, which I fully endorse.
