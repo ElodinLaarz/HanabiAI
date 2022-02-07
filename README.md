@@ -12,7 +12,7 @@ There are limited hints, limited cards in the deck, and if you try to play a car
 # How does it work?
 The program useses a genetic algorithm to determine when to play/discard/give a hint. In a given generation of AI players, they are then randomly paired up with partners and their end score determines which genes get passed on to future generations!
 
-# Are the AI players it any good?
+# Are the AI players any good?
 I've gotten AI players that have scored an average of 18 points over 10 games. (In the standard game in which maximum score is 25.)
 
 # How do I run this?
