@@ -16,7 +16,7 @@ input_size = 2+5+2*10
 # play cards (5), discard cards (5), give hints (10 x num_players)
 output_size = 30
 
-population = 1000
+population = 2500
 
 current_generation = []
 
@@ -41,7 +41,7 @@ for i in range(seed_weights, population):
     current_generation.append([player(input_size=input_size,
                                       output_size=output_size), 0])
 
-num_generations = 1000
+num_generations = 10000
 
 # If a player gets a particular score, we save their scores to disk
 min_score_to_save = 11
@@ -70,10 +70,10 @@ for generation_index in range(num_generations):
                     move_index = move_ratings.argmax()
                     
                 cur_game.performMove(move_index)
-            # if cur_game.lives != 0:
-            player_scores.append(cur_game.current_score)
-            # else:
-            #     player_scores.append(0)
+            if cur_game.lives != 0:
+                player_scores.append(cur_game.current_score)
+            else:
+                player_scores.append(0)
         
         # print(player_scores)
         current_generation[player_index][1] = statistics.mean(player_scores)
@@ -112,7 +112,7 @@ for generation_index in range(num_generations):
     
     # If we're consistently getting scores of a fixed value, increase the
     # target score
-    if weight_index_to_add >= 3:
+    if weight_index_to_add >= 10:
         min_score_to_save += 1
     
     # Generate a new generation by randomly choosing two* parents biased upon 
